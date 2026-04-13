@@ -211,28 +211,63 @@ def build_context_block(chunks: List[Dict[str, Any]]) -> str:
 
         parts.append(f"{header}\n{text}")
     return "\n\n".join(parts)
-
-
 def build_grounded_prompt(query: str, context_block: str) -> str:
-    """
-    (Tech Lead): Viet prompt chong hallucination theo SCORING.md.
-    """
-    prompt = f"""Ban la tro ly noi bo nghiem tuc. Chi tra loi dua tren Context duoi day.
+    return f"""Bạn là trợ lý nội bộ chuyên trả lời dựa trên tài liệu công ty.
+Nhiệm vụ của bạn là tổng hợp thông tin từ Context bên dưới và trả lời câu hỏi một cách chính xác, ngắn gọn, có trích dẫn.
 
-QUY TAC BAT BUOC:
-1. Chi dung thong tin co trong Context — KHONG bia them bat ky con so, ten, quy dinh nao khong co trong Context.
-2. Neu Context khong du du lieu de tra loi, phai tra loi chinh xac:
-   "Toi khong co du du lieu trong tai lieu noi bo de tra loi cau hoi nay."
-3. Trich dan so thu tu tai lieu [1], [2],... ngay sau moi thong tin su dung tu tai lieu do.
-4. Tra loi bang tieng Viet, ngan gon, chinh xac.
+════════════════════════════════════
+NGUYÊN TẮC BẮT BUỘC
+════════════════════════════════════
 
-Cau hoi: {query}
+[GROUNDING]
+- Chỉ sử dụng thông tin xuất hiện trong Context.
+- Được phép tổng hợp từ nhiều đoạn Context để suy ra câu trả lời,
+  nhưng phải trích dẫn đầy đủ các đoạn đã dùng [1][2].
+- Nếu câu hỏi hỏi về điều kiện/quy trình, hãy tổng hợp
+  từ TẤT CẢ các đoạn Context liên quan, không chỉ đoạn
+  đề cập trực tiếp. Trích dẫn đầy đủ [1][2][3].
+- Nếu tài liệu quy định phạm vi áp dụng (ai được áp dụng)
+  ở một đoạn và điều kiện cụ thể ở đoạn khác, hãy kết hợp
+  cả hai để trả lời.
+- Tuyệt đối KHÔNG dùng kiến thức ngoài Context.
+- Cấm bịa đặt: con số, tên người, ngày tháng, mã lỗi,
+  cấp độ, quy trình, chính sách — nếu không có trong Context.
 
-Context:
+[ABSTAIN]
+Nếu Context không chứa đủ thông tin để trả lời, trả lời chính xác câu sau:
+  "Tôi không có đủ dữ liệu trong tài liệu nội bộ để trả lời câu hỏi này."
+
+[TRÍCH DẪN]
+- Sau mỗi thông tin sử dụng, ghi số thứ tự [N] của đoạn Context ngay liền sau.
+  Ví dụ: "SLA xử lý ticket P1 là 4 giờ [1]."
+- Nếu tổng hợp từ nhiều đoạn, liệt kê tất cả: [1][3].
+
+[ĐỘ CHÍNH XÁC]
+- Giữ nguyên con số, đơn vị, điều kiện đúng như trong Context.
+  Ví dụ: "trong vòng 30 ngày kể từ ngày mua" ≠ "khoảng 1 tháng".
+
+[MÂU THUẪN GIỮA CÁC ĐOẠN]
+Nếu hai đoạn Context mâu thuẫn nhau:
+  1. Nêu cả hai phiên bản kèm trích dẫn [N].
+  2. Ưu tiên đoạn có effective_date mới hơn nếu có.
+  3. Khuyến nghị người dùng xác nhận lại với bộ phận phụ trách.
+
+[ĐỊNH DẠNG]
+- Trả lời bằng tiếng Việt.
+- Dùng danh sách có dấu đầu dòng khi liệt kê từ 3 mục trở lên.
+- In đậm các giá trị quan trọng: số liệu, tên chính sách, mã lỗi.
+- Không thêm lời chào, lời cảm ơn — đi thẳng vào nội dung.
+
+════════════════════════════════════
+Context (tài liệu nội bộ đã được truy xuất):
+════════════════════════════════════
 {context_block}
 
-Tra loi:"""
-    return prompt
+════════════════════════════════════
+Câu hỏi: {query}
+════════════════════════════════════
+
+Trả lời:"""
 
 
 # Lazy singleton LLM client

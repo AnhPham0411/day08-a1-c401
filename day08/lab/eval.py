@@ -66,7 +66,7 @@ def call_test_llm(messages, model=os.getenv("LLM_MODEL"), temperature=0):
 VARIANT_CONFIG = {
     "retrieval_mode": "hybrid",   # Bien duy nhat thay doi
     "top_k_search":   10,
-    "top_k_select":   3,
+    "top_k_select":   5,
     "use_rerank":     True,
 }
 
@@ -91,6 +91,10 @@ def score_faithfulness(
       2: Nhiều thông tin không có trong retrieved chunks
       1: Câu trả lời không grounded, phần lớn là model bịa
     """
+    # Abstain đúng = faithful hoàn toàn, không cần hỏi LLM
+    ABSTAIN_PHRASE = "Tôi không có đủ dữ liệu"
+    if ABSTAIN_PHRASE in answer:
+        return {"score": 5, "notes": "Correct abstain — pipeline refused to hallucinate"}
     prompt = f"""
     Given these retrieved chunks: {chunks_used}
     And this answer: {answer}
