@@ -124,8 +124,8 @@ def retrieve_sparse(query: str, top_k: int = TOP_K_SEARCH) -> List[Dict[str, Any
 def retrieve_hybrid(
     query: str,
     top_k: int           = TOP_K_SEARCH,
-    dense_weight: float  = 0.6,
-    sparse_weight: float = 0.4,
+    dense_weight: float  = 0.8, # ban đầu để là 0.6 nhưng test phát hiện "SLA P1" bị abstain sai
+    sparse_weight: float = 0.2,
 ) -> List[Dict[str, Any]]:
     """
     Ket hop dense va BM25 bang Reciprocal Rank Fusion (RRF).

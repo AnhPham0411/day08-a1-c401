@@ -20,8 +20,8 @@ load_dotenv()
 DOCS_DIR      = Path(__file__).parent / "data" / "docs"
 CHROMA_DB_DIR = Path(__file__).parent / "chroma_db"
 
-CHUNK_SIZE    = 200   # token ≈ 800 ky tu
-CHUNK_OVERLAP = 40    # token ≈ 160 ky tu
+CHUNK_SIZE    = 400   # token ≈ 1600 ky tu
+CHUNK_OVERLAP = 80    # token ≈ 320 ky tu
 
 
 # =============================================================================

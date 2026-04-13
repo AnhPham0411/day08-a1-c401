@@ -25,12 +25,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from rag_answer import rag_answer
+from openai import OpenAI
+import time
 
 # =============================================================================
 # CAU HINH A/B
 # A/B Rule: Chi doi MOT bien moi lan
 # =============================================================================
 
+TEST_QUESTIONS_PATH = Path(__file__).parent / "data" / "grading_questions.json"
+RESULTS_DIR = Path(__file__).parent / "results"
+LOGS_DIR = Path(__file__).parent / "logs"
+
+# Cấu hình baseline (Sprint 2)
 BASELINE_CONFIG = {
     "retrieval_mode": "dense",
     "top_k_search":   10,
@@ -38,16 +45,195 @@ BASELINE_CONFIG = {
     "use_rerank":     False,
 }
 
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+def call_test_llm(messages, model=os.getenv("LLM_MODEL"), temperature=0):
+    start = time.time()
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature=temperature,
+    )
+
+    content = response.choices[0].message.content
+    latency = time.time() - start
+
+    return content, latency
+
+# Cấu hình variant (Sprint 3 — điều chỉnh theo lựa chọn của nhóm)
+# TODO Sprint 4: Cập nhật VARIANT_CONFIG theo variant nhóm đã implement
 VARIANT_CONFIG = {
     "retrieval_mode": "hybrid",   # Bien duy nhat thay doi
     "top_k_search":   10,
     "top_k_select":   3,
-    "use_rerank":     False,
+    "use_rerank":     True,
 }
 
-TEST_QUESTIONS_PATH = Path(__file__).parent / "data" / "test_questions.json"
-RESULTS_DIR         = Path(__file__).parent / "results"
-LOGS_DIR            = Path(__file__).parent / "logs"
+
+# =============================================================================
+# SCORING FUNCTIONS
+# 4 metrics từ slide: Faithfulness, Answer Relevance, Context Recall, Completeness
+# =============================================================================
+
+def score_faithfulness(
+    answer: str,
+    chunks_used: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """
+    Faithfulness: Câu trả lời có bám đúng chứng cứ đã retrieve không?
+    Câu hỏi: Model có tự bịa thêm thông tin ngoài retrieved context không?
+
+    Thang điểm 1-5:
+      5: Mọi thông tin trong answer đều có trong retrieved chunks
+      4: Gần như hoàn toàn grounded, 1 chi tiết nhỏ chưa chắc chắn
+      3: Phần lớn grounded, một số thông tin có thể từ model knowledge
+      2: Nhiều thông tin không có trong retrieved chunks
+      1: Câu trả lời không grounded, phần lớn là model bịa
+    """
+    prompt = f"""
+    Given these retrieved chunks: {chunks_used}
+    And this answer: {answer}
+    Rate the faithfulness on a scale of 1-5.
+    5: All information in the answer is in the retrieved chunks
+    4: Almost entirely grounded, one small detail is uncertain
+    3: Mostly grounded, some information may come from model knowledge
+    2: Much information is not in the retrieved chunks
+    1: The answer is not grounded, mostly fabricated by the model
+    Return ONLY valid JSON.
+    No explanation. No markdown. No text before or after.
+    Output JSON: {{"score": <int>, "notes": "<string>"}}
+    """
+
+    content, latency = call_test_llm(
+        [{"role": "user", "content": prompt}],
+        temperature=0
+    )
+
+    print(content)
+    parsed = json.loads(content)
+    return parsed
+
+
+def score_answer_relevance(
+    query: str,
+    answer: str,
+) -> Dict[str, Any]:
+    """
+    Answer Relevance: Answer có trả lời đúng câu hỏi người dùng hỏi không?
+    Câu hỏi: Model có bị lạc đề hay trả lời đúng vấn đề cốt lõi không?
+
+    Thang điểm 1-5:
+      5: Answer trả lời trực tiếp và đầy đủ câu hỏi
+      4: Trả lời đúng nhưng thiếu vài chi tiết phụ
+      3: Trả lời có liên quan nhưng chưa đúng trọng tâm
+      2: Trả lời lạc đề một phần
+      1: Không trả lời câu hỏi
+    """
+    prompt = f"""
+    Given the query: {query}
+    And this answer: {answer}
+    Rate the answer relevance on a scale of 1-5.
+    5: Answer directly and completely to the question
+    4: Answer is correct but lacks some supporting details
+    3: Answer is relevant but not focused
+    2: Answer is partially off-topic
+    1: No answer to the question
+    Return ONLY valid JSON.
+    No explanation. No markdown. No text before or after.
+    Output JSON: {{"score": <int>, "notes": "<string>"}}
+    """
+
+    content, latency = call_test_llm(
+        [{"role": "user", "content": prompt}],
+        temperature=0
+    )
+    
+    parsed = json.loads(content)
+    return parsed
+
+
+def score_context_recall(
+    chunks_used: List[Dict[str, Any]],
+    expected_sources: List[str],
+) -> Dict[str, Any]:
+    """
+    Context Recall: Retriever có mang về đủ evidence cần thiết không?
+    Câu hỏi: Expected source có nằm trong retrieved chunks không?
+
+    Đây là metric đo retrieval quality, không phải generation quality.
+
+    Cách tính đơn giản:
+        recall = (số expected source được retrieve) / (tổng số expected sources)
+    """
+    if not expected_sources:
+        return {"score": None, "recall": None, "notes": "No expected sources"}
+
+    retrieved_sources = {
+        c.get("metadata", {}).get("source", "")
+        for c in chunks_used
+    }
+
+    found = 0
+    missing = []
+    for expected in expected_sources:
+        expected_name = expected.split("/")[-1].replace(".pdf", "").replace(".md", "")
+        matched = any(expected_name.lower() in r.lower() for r in retrieved_sources)
+        if matched:
+            found += 1
+        else:
+            missing.append(expected)
+
+    recall = found / len(expected_sources) if expected_sources else 0
+
+    return {
+        "score": round(recall * 5),  # Convert to 1-5 scale
+        "recall": recall,
+        "found": found,
+        "missing": missing,
+        "notes": f"Retrieved: {found}/{len(expected_sources)} expected sources" +
+                 (f". Missing: {missing}" if missing else ""),
+    }
+
+
+def score_completeness(
+    query: str,
+    answer: str,
+    expected_answer: str,
+) -> Dict[str, Any]:
+    """
+    Completeness: Answer có thiếu điều kiện ngoại lệ hoặc bước quan trọng không?
+    Câu hỏi: Answer có bao phủ đủ thông tin so với expected_answer không?
+
+    Thang điểm 1-5:
+      5: Answer bao gồm đủ tất cả điểm quan trọng trong expected_answer
+      4: Thiếu 1 chi tiết nhỏ
+      3: Thiếu một số thông tin quan trọng
+      2: Thiếu nhiều thông tin quan trọng
+      1: Thiếu phần lớn nội dung cốt lõi
+    """
+    prompt = f"""
+    Given the query: {query}
+    Given the actual answer: {answer}
+    And expected answer: {expected_answer}
+    Rate the answer relevance between actual answer and expected answer on a scale of 1-5.
+    5: The actual answer includes all the important points in the expected answer.
+    4: Missing one small detail.
+    3: Missing some important information.
+    2: Missing a lot of important information.
+    1: Missing most of the core content.
+    Return ONLY valid JSON.
+    No explanation. No markdown. No text before or after.
+    Output JSON: {{"score": <int>, "notes": "<string>"}}
+    """
+
+    content, latency = call_test_llm(
+        [{"role": "user", "content": prompt}],
+        temperature=0
+    )
+    
+    parsed = json.loads(content)
+    return parsed
 
 
 # =============================================================================
@@ -66,12 +252,20 @@ def run_pipeline(questions: List[Dict], config: Dict, label: str = "") -> List[D
     print('='*50)
 
     for i, q in enumerate(questions, 1):
-        qid      = q.get("id", f"q{i:02d}")
-        question = q.get("question", "")
-        expected = q.get("expected_answer", "")
-        exp_src  = q.get("expected_source", "")
+        qid             = q.get("id", f"q{i:02d}")
+        question        = q.get("question", "")
+        expected_answer = q.get("expected_answer", "")
+        expected_sources= q.get("expected_sources", [])
+        if "expected_source" in q and not expected_sources:
+            expected_sources = [q["expected_source"]]
+        category        = q.get("category", "general")
 
         print(f"\n[{i}/{len(questions)}] {qid}: {question[:60]}...")
+
+        # FIX: khởi tạo giá trị mặc định trước try/except
+        answer = ""
+        sources = []
+        chunks_used = []
 
         try:
             result = rag_answer(
@@ -82,38 +276,51 @@ def run_pipeline(questions: List[Dict], config: Dict, label: str = "") -> List[D
                 use_rerank     = config["use_rerank"],
                 verbose        = False,
             )
-            answer  = result["answer"]
-            sources = result["sources"]
-            chunks  = result["chunks_used"]
+            answer      = result["answer"]
+            sources     = result["sources"]
+            chunks_used = result["chunks_used"]
 
         except Exception as e:
             answer  = f"PIPELINE_ERROR: {e}"
             sources = []
-            chunks  = []
+            chunks_used = []
 
-        # Cham Context Recall tu dong
-        context_recall = _check_context_recall(exp_src, chunks) if exp_src else None
+        faith     = score_faithfulness(answer, chunks_used)
+        relevance = score_answer_relevance(question, answer)
+        recall    = score_context_recall(chunks_used, expected_sources)
+        complete  = score_completeness(question, answer, expected_answer)
 
-        print(f"  Answer:  {answer[:100]}...")
-        print(f"  Sources: {sources}")
-        if context_recall is not None:
-            print(f"  Context Recall: {'PASS' if context_recall else 'FAIL'}")
+        row = {
+            "id":                   qid,
+            "category":             category,
+            "query":                question,   # key là "query"
+            "answer":               answer,
+            "expected_answer":      expected_answer,
+            "sources":              sources,
+            "chunks_retrieved":     len(chunks_used),
+            "faithfulness":         faith["score"],
+            "faithfulness_notes":   faith["notes"],
+            "relevance":            relevance["score"],
+            "relevance_notes":      relevance["notes"],
+            "context_recall":       recall.get("score", 0),
+            "context_recall_notes": recall["notes"],
+            "completeness":         complete["score"],
+            "completeness_notes":   complete["notes"],
+            "config_label":         label,
+            "retrieval_mode":       config["retrieval_mode"],
+            "timestamp":            datetime.now().isoformat(),
+        }
+        results.append(row)
 
-        results.append({
-            "id":               qid,
-            "question":         question,
-            "expected_answer":  expected,
-            "expected_source":  exp_src,
-            "answer":           answer,
-            "sources":          sources,
-            "chunks_retrieved": len(chunks),
-            "retrieval_mode":   config["retrieval_mode"],
-            "context_recall":   context_recall,
-            "timestamp":        datetime.now().isoformat(),
-            # Scores se duoc dien o buoc cham diem
-            "faithfulness":     None,
-            "relevance":        None,
-        })
+        print(f"  Answer: {answer[:100]}...")
+        print(f"  Faithful: {faith['score']} | Relevant: {relevance['score']} | "
+              f"Recall: {recall['score']} | Complete: {complete['score']}")
+
+    # Tính averages (bỏ qua None)
+    for metric in ["faithfulness", "relevance", "context_recall", "completeness"]:
+        scores = [r[metric] for r in results if r[metric] is not None]
+        avg = sum(scores) / len(scores) if scores else None
+        print(f"\nAverage {metric}: {avg:.2f}" if avg else f"\nAverage {metric}: N/A (chưa chấm)")
 
     return results
 
@@ -133,16 +340,7 @@ def _check_context_recall(expected_source: str, chunks: List[Dict]) -> bool:
 def score_with_llm(results: List[Dict]) -> List[Dict]:
     """
     LLM-as-Judge: cham Faithfulness va Relevance cho tung cau.
-    Tra ve 1/0 cho moi metric.
-
-    Faithfulness : answer co chi dua vao thong tin co that trong tai lieu?
-    Relevance    : answer co tra loi dung cau hoi duoc hoi?
-
-    Dieu kien dat diem:
-      Faithfulness = 1: answer khong bia so lieu, ten, quy dinh ngoai context
-      Relevance    = 1: answer co de cap dung chu the cau hoi hoi
     """
-    from openai import OpenAI
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     for r in results:
@@ -153,25 +351,24 @@ def score_with_llm(results: List[Dict]) -> List[Dict]:
 
         prompt = f"""Cham diem cau tra loi sau day theo 2 tieu chi.
 
-Cau hoi: {r['question']}
+Cau hoi: {r['query']}
 Cau tra loi: {r['answer']}
 
-Tra loi ONLY bằng JSON, khong giai thich:
+Tra loi ONLY bang JSON, khong giai thich:
 {{
-  "faithfulness": 1 hoac 0,   // 1 neu khong co thong tin bia, 0 neu co hallucination
-  "relevance":    1 hoac 0,   // 1 neu tra loi dung chu the cau hoi, 0 neu lac de
+  "faithfulness": 1 hoac 0,
+  "relevance":    1 hoac 0,
   "note": "mo ta ngan"
 }}"""
 
         try:
             resp = client.chat.completions.create(
-                model    = "gpt-4o-mini",
-                messages = [{"role": "user", "content": prompt}],
+                model       = "gpt-4o-mini",
+                messages    = [{"role": "user", "content": prompt}],
                 temperature = 0,
                 max_tokens  = 150,
             )
             raw    = resp.choices[0].message.content.strip()
-            # Strip markdown fences neu co
             raw    = raw.replace("```json", "").replace("```", "").strip()
             parsed = json.loads(raw)
             r["faithfulness"] = int(parsed.get("faithfulness", 0))
@@ -188,11 +385,10 @@ Tra loi ONLY bằng JSON, khong giai thich:
 def score_manually(results: List[Dict]) -> List[Dict]:
     """
     Cham thu cong: in tung cau, nguoi dung nhap 1/0.
-    Dung khi khong co API key hoac muon kiem tra tay.
     """
     print("\n=== Cham thu cong (nhap 1=dat / 0=khong dat) ===")
     for r in results:
-        print(f"\n[{r['id']}] {r['question']}")
+        print(f"\n[{r['id']}] {r['query']}")
         print(f"Expected: {r['expected_answer']}")
         print(f"Got:      {r['answer']}")
 
@@ -202,6 +398,7 @@ def score_manually(results: List[Dict]) -> List[Dict]:
         except (ValueError, KeyboardInterrupt):
             r["faithfulness"] = 0
             r["relevance"]    = 0
+
     return results
 
 
@@ -223,18 +420,18 @@ def compute_scorecard(results: List[Dict], label: str = "") -> Dict:
                            for r in results if r["context_recall"] is not None]
 
     scorecard = {
-        "label":            label,
-        "n_questions":      n,
-        "faithfulness":     round(sum(faithfulness_scores) / len(faithfulness_scores), 3) if faithfulness_scores else None,
-        "relevance":        round(sum(relevance_scores)    / len(relevance_scores),    3) if relevance_scores    else None,
-        "context_recall":   round(sum(recall_scores)       / len(recall_scores),       3) if recall_scores       else None,
-        "retrieval_mode":   results[0]["retrieval_mode"] if results else "unknown",
+        "label":          label,
+        "n_questions":    n,
+        "faithfulness":   round(sum(faithfulness_scores) / len(faithfulness_scores), 3) if faithfulness_scores else None,
+        "relevance":      round(sum(relevance_scores)    / len(relevance_scores),    3) if relevance_scores    else None,
+        "context_recall": round(sum(recall_scores)       / len(recall_scores),       3) if recall_scores       else None,
+        "retrieval_mode": results[0]["retrieval_mode"] if results else "unknown",
     }
 
     print(f"\n{'='*50}")
     print(f"SCORECARD: {label}")
-    print(f"  Faithfulness   : {scorecard['faithfulness']:.1%}" if scorecard['faithfulness'] is not None else "  Faithfulness   : N/A")
-    print(f"  Relevance      : {scorecard['relevance']:.1%}"    if scorecard['relevance']    is not None else "  Relevance      : N/A")
+    print(f"  Faithfulness   : {scorecard['faithfulness']:.1%}"   if scorecard['faithfulness']   is not None else "  Faithfulness   : N/A")
+    print(f"  Relevance      : {scorecard['relevance']:.1%}"      if scorecard['relevance']      is not None else "  Relevance      : N/A")
     print(f"  Context Recall : {scorecard['context_recall']:.1%}" if scorecard['context_recall'] is not None else "  Context Recall : N/A")
     print(f"  N questions    : {n}")
     print('='*50)
@@ -250,7 +447,6 @@ def compare_ab(scorecard_baseline: Dict, scorecard_variant: Dict) -> None:
     """
     In bang so sanh delta giua baseline va variant.
     Delta duong → variant tot hon.
-    Dung de dien vao docs/tuning-log.md.
     """
     metrics = ["faithfulness", "relevance", "context_recall"]
 
@@ -267,7 +463,7 @@ def compare_ab(scorecard_baseline: Dict, scorecard_variant: Dict) -> None:
         if b is None or v is None:
             print(f"{m:<20} {'N/A':>10} {'N/A':>10} {'N/A':>10}")
             continue
-        delta  = v - b
+        delta   = v - b
         verdict = "BETTER ↑" if delta > 0.05 else ("WORSE ↓" if delta < -0.05 else "NEUTRAL →")
         print(f"{m:<20} {b:>10.1%} {v:>10.1%} {delta:>+10.1%} {verdict}")
 
@@ -323,7 +519,7 @@ def save_scorecard_md(results: List[Dict], scorecard: Dict, filename: str) -> No
         r_score = r.get("relevance",    "-")
         recall  = "✓" if r.get("context_recall") else ("✗" if r.get("context_recall") is False else "-")
         preview = r["answer"][:60].replace("|", "/")
-        lines.append(f"| {r['id']} | {r['question'][:40]} | {f_score} | {r_score} | {recall} | {preview}... |")
+        lines.append(f"| {r['id']} | {r['query'][:40]} | {f_score} | {r_score} | {recall} | {preview}... |")
 
     path.write_text("\n".join(lines), encoding="utf-8")
     print(f"Saved: {path}")
@@ -337,7 +533,7 @@ def save_grading_log(results: List[Dict], filename: str = "grading_run.json") ->
     log = [
         {
             "id":               r["id"],
-            "question":         r["question"],
+            "question":         r["query"],           # FIX: đổi r["question"] → r["query"]
             "answer":           r["answer"],
             "sources":          r["sources"],
             "chunks_retrieved": r["chunks_retrieved"],
@@ -370,12 +566,10 @@ def run_scorecard(config: Dict, questions: List[Dict], label: str, use_llm_judge
 
 
 if __name__ == "__main__":
-    # Kiem tra argument
     mode = "both"
     if len(sys.argv) > 2 and sys.argv[1] == "--mode":
         mode = sys.argv[2]
 
-    # Doc test questions
     if not TEST_QUESTIONS_PATH.exists():
         print(f"Khong tim thay {TEST_QUESTIONS_PATH}")
         print("Tao data/test_questions.json truoc.")
@@ -386,7 +580,6 @@ if __name__ == "__main__":
 
     print(f"Doc duoc {len(questions)} cau hoi tu {TEST_QUESTIONS_PATH}")
 
-    # Chon dung LLM judge hay manual
     use_llm = bool(os.getenv("OPENAI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
     if not use_llm:
         print("Khong co API key → chuyen sang cham thu cong")
@@ -394,9 +587,9 @@ if __name__ == "__main__":
     # === CHAY BASELINE ===
     if mode in ("both", "baseline"):
         baseline_results, baseline_scorecard = run_scorecard(
-            config       = BASELINE_CONFIG,
-            questions    = questions,
-            label        = "Baseline (Dense)",
+            config        = BASELINE_CONFIG,
+            questions     = questions,
+            label         = "Baseline (Dense)",
             use_llm_judge = use_llm,
         )
         save_scorecard_md(baseline_results, baseline_scorecard, "scorecard_baseline.md")
@@ -405,9 +598,9 @@ if __name__ == "__main__":
     # === CHAY VARIANT ===
     if mode in ("both", "variant"):
         variant_results, variant_scorecard = run_scorecard(
-            config       = VARIANT_CONFIG,
-            questions    = questions,
-            label        = "Variant (Hybrid RRF)",
+            config        = VARIANT_CONFIG,
+            questions     = questions,
+            label         = "Variant (Hybrid RRF)",
             use_llm_judge = use_llm,
         )
         save_scorecard_md(variant_results, variant_scorecard, "scorecard_variant.md")
