@@ -215,58 +215,45 @@ def build_context_block(chunks: List[Dict[str, Any]]) -> str:
 
 def build_grounded_prompt(query: str, context_block: str) -> str:
     """
-    TODO (Tech Lead): Viet prompt chong hallucination.
-
-    Yeu cau bat buoc theo SCORING.md:
-    1. Chi dung thong tin co trong Context — khong bia them.
-    2. Neu Context khong du → tra loi chinh xac:
-       "Toi khong co du du lieu trong tai lieu noi bo de tra loi cau hoi nay."
-    3. Trich dan [1], [2], ... khi su dung thong tin tu tai lieu do.
-    4. Ngan gon, chinh xac, tra loi bang tieng Viet.
-
-    Goi y prompt:
-        prompt = f\"\"\"Ban la tro ly noi bo. Chi tra loi dua tren Context duoi day.
-        QUY TAC BAT BUOC:
-        1. KHONG bia them bat ky con so, ten, quy dinh nao khong co trong Context.
-        2. Neu Context khong du, tra loi: "Toi khong co du du lieu trong tai lieu noi bo de tra loi cau hoi nay."
-        3. Trich dan so thu tu tai lieu [1], [2],... sau moi thong tin su dung.
-        4. Tra loi bang tieng Viet, ngan gon.
-
-        Cau hoi: {query}
-
-        Context:
-        {context_block}
-
-        Tra loi:\"\"\"
-        return prompt
+    (Tech Lead): Viet prompt chong hallucination theo SCORING.md.
     """
-    raise NotImplementedError("TODO Tech Lead: Implement build_grounded_prompt()")
+    prompt = f"""Ban la tro ly noi bo nghiem tuc. Chi tra loi dua tren Context duoi day.
 
+QUY TAC BAT BUOC:
+1. Chi dung thong tin co trong Context — KHONG bia them bat ky con so, ten, quy dinh nao khong co trong Context.
+2. Neu Context khong du du lieu de tra loi, phai tra loi chinh xac:
+   "Toi khong co du du lieu trong tai lieu noi bo de tra loi cau hoi nay."
+3. Trich dan so thu tu tai lieu [1], [2],... ngay sau moi thong tin su dung tu tai lieu do.
+4. Tra loi bang tieng Viet, ngan gon, chinh xac.
+
+Cau hoi: {query}
+
+Context:
+{context_block}
+
+Tra loi:"""
+    return prompt
+
+
+# Lazy singleton LLM client
+_llm_client = None
 
 def call_llm(prompt: str) -> str:
     """
-    TODO (Tech Lead): Goi LLM de sinh cau tra loi.
-
-    Option A — OpenAI gpt-4o-mini:
-        from openai import OpenAI
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        response = client.chat.completions.create(
-            model=LLM_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0,      # Quan trong: temperature=0 de output on dinh
-            max_tokens=512,
-        )
-        return response.choices[0].message.content.strip()
-
-    Option B — Google Gemini:
-        import google.generativeai as genai
-        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        return model.generate_content(prompt).text
-
-    Luu y: temperature=0 de output nhat quan qua cac lan chay (can cho scorecard).
+    (Tech Lead): Goi LLM (OpenAI) de sinh cau tra loi voi temperature=0.
     """
-    raise NotImplementedError("TODO Tech Lead: Implement call_llm()")
+    global _llm_client
+    if _llm_client is None:
+        from openai import OpenAI
+        _llm_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+    response = _llm_client.chat.completions.create(
+        model=LLM_MODEL,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0,
+        max_tokens=512,
+    )
+    return response.choices[0].message.content.strip()
 
 
 def rag_answer(
@@ -278,49 +265,46 @@ def rag_answer(
     verbose: bool       = False,
 ) -> Dict[str, Any]:
     """
-    TODO (Tech Lead): Ghep cac buoc thanh pipeline hoan chinh.
-
-    Cac ham retrieval da co san:
-      retrieve_dense(), retrieve_sparse(), retrieve_hybrid(), rerank()
-    Tech Lead can goi chung theo thu tu:
-
-        # Buoc 1: Retrieve
-        if retrieval_mode == "dense":
-            candidates = retrieve_dense(query, top_k=top_k_search)
-        elif retrieval_mode == "sparse":
-            candidates = retrieve_sparse(query, top_k=top_k_search)
-        elif retrieval_mode == "hybrid":
-            candidates = retrieve_hybrid(query, top_k=top_k_search)
-
-        # Buoc 2: Rerank (optional)
-        if use_rerank:
-            candidates = rerank(query, candidates, top_k=top_k_select)
-        else:
-            candidates = candidates[:top_k_select]
-
-        # Buoc 3: Build context
-        context_block = build_context_block(candidates)
-        prompt        = build_grounded_prompt(query, context_block)
-
-        # Buoc 4: Generate
-        answer = call_llm(prompt)
-
-        # Buoc 5: Tra ve
-        sources = list({c["metadata"].get("source", "unknown") for c in candidates})
-        return {
-            "query":       query,
-            "answer":      answer,
-            "sources":     sources,
-            "chunks_used": candidates,
-            "config": {
-                "retrieval_mode": retrieval_mode,
-                "top_k_search":   top_k_search,
-                "top_k_select":   top_k_select,
-                "use_rerank":     use_rerank,
-            },
-        }
+    (Tech Lead): Ghép các bước thành RAG pipeline hoàn chỉnh.
     """
-    raise NotImplementedError("TODO Tech Lead: Implement rag_answer()")
+    # Bước 1: Retrieve
+    if retrieval_mode == "dense":
+        candidates = retrieve_dense(query, top_k=top_k_search)
+    elif retrieval_mode == "sparse":
+        candidates = retrieve_sparse(query, top_k=top_k_search)
+    else:  # default hybrid
+        candidates = retrieve_hybrid(query, top_k=top_k_search)
+
+    # Bước 2: Rerank (optional)
+    if use_rerank:
+        candidates = rerank(query, candidates, top_k=top_k_select)
+    else:
+        candidates = candidates[:top_k_select]
+
+    # Bước 3: Build grounded prompt
+    context_block = build_context_block(candidates)
+    prompt        = build_grounded_prompt(query, context_block)
+
+    if verbose:
+        print(f"\n--- PROMPT ---\n{prompt}\n--------------")
+
+    # Bước 4: Generate
+    answer = call_llm(prompt)
+
+    # Bước 5: Kết quả
+    sources = list({c["metadata"].get("source", "unknown") for c in candidates})
+    return {
+        "query":       query,
+        "answer":      answer,
+        "sources":     sources,
+        "chunks_used": candidates,
+        "config": {
+            "retrieval_mode": retrieval_mode,
+            "top_k_search":   top_k_search,
+            "top_k_select":   top_k_select,
+            "use_rerank":     use_rerank,
+        },
+    }
 
 
 # =============================================================================

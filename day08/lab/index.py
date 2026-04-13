@@ -186,72 +186,71 @@ def _split_by_size(
 # STEP 3: EMBED + STORE — Tech Lead TODO
 # =============================================================================
 
+# Lazy singleton client
+_openai_client = None
+
 def get_embedding(text: str) -> List[float]:
     """
-    TODO (Tech Lead): Tao embedding vector cho text.
-
-    Option A — OpenAI text-embedding-3-small:
-        from openai import OpenAI
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        response = client.embeddings.create(input=text, model="text-embedding-3-small")
-        return response.data[0].embedding
-
-    Option B — Sentence Transformers (local):
-        from sentence_transformers import SentenceTransformer
-        model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
-        return model.encode(text).tolist()
-
-    Goi y: Dung lazy singleton de khong tao lai client moi lan goi.
+    (Tech Lead): Tao embedding vector cho text bang OpenAI text-embedding-3-small.
     """
-    raise NotImplementedError("TODO Tech Lead: Implement get_embedding()")
+    global _openai_client
+    if _openai_client is None:
+        from openai import OpenAI
+        _openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+    # Cleanup text (remove newlines cache issues)
+    text = text.replace("\n", " ")
+    response = _openai_client.embeddings.create(input=[text], model="text-embedding-3-small")
+    return response.data[0].embedding
 
 
 def build_index(docs_dir: Path = DOCS_DIR, db_dir: Path = CHROMA_DB_DIR) -> None:
     """
-    TODO (Tech Lead): Implement phan embed + upsert vao ChromaDB.
-
-    Phan preprocess + chunk da co san (Retrieval Owner da implement).
-    Tech Lead chi can them:
-
-        import chromadb
-        db_dir.mkdir(parents=True, exist_ok=True)
-        client = chromadb.PersistentClient(path=str(db_dir))
-        try:
-            client.delete_collection("rag_lab")
-        except Exception:
-            pass
-        collection = client.get_or_create_collection(
-            name="rag_lab",
-            metadata={"hnsw:space": "cosine"}
-        )
-        for filepath in doc_files:
-            raw    = filepath.read_text(encoding="utf-8")
-            doc    = preprocess_document(raw, str(filepath))
-            chunks = chunk_document(doc)
-            ids        = [f"{filepath.stem}_{i:03d}" for i in range(len(chunks))]
-            embeddings = [get_embedding(c["text"]) for c in chunks]
-            documents  = [c["text"]     for c in chunks]
-            metadatas  = [c["metadata"] for c in chunks]
-            collection.upsert(ids=ids, embeddings=embeddings,
-                              documents=documents, metadatas=metadatas)
-            print(f"  {filepath.name}: {len(chunks)} chunks indexed")
+    (Tech Lead): Implement phan embed + upsert vao ChromaDB.
     """
+    import chromadb
+    db_dir.mkdir(parents=True, exist_ok=True)
+    client = chromadb.PersistentClient(path=str(db_dir))
+
+    try:
+        # Xoa du lieu cu de index moi tu dau
+        client.delete_collection("rag_lab")
+    except Exception:
+        pass
+
+    collection = client.get_or_create_collection(
+        name="rag_lab",
+        metadata={"hnsw:space": "cosine"}
+    )
+
     doc_files = list(docs_dir.glob("*.txt"))
     if not doc_files:
         print(f"Khong tim thay .txt trong {docs_dir}")
         return
 
-    # Phan nay chay duoc ngay — Retrieval Owner dung de verify chunk
-    print(f"Preview preprocess + chunk (chua embed):")
-    total = 0
+    print(f"Starting indexing for {len(doc_files)} docs...")
     for filepath in doc_files:
         raw    = filepath.read_text(encoding="utf-8")
         doc    = preprocess_document(raw, str(filepath))
         chunks = chunk_document(doc)
-        print(f"  {filepath.name}: {len(chunks)} chunks | metadata={doc['metadata']}")
-        total += len(chunks)
-    print(f"Tong: {total} chunks")
-    print("Tech Lead: Implement get_embedding() roi uncomment phan upsert.")
+
+        if not chunks:
+            continue
+
+        ids        = [f"{filepath.stem}_{i:03d}" for i in range(len(chunks))]
+        embeddings = [get_embedding(c["text"]) for c in chunks]
+        documents  = [c["text"]     for c in chunks]
+        metadatas  = [c["metadata"] for c in chunks]
+
+        collection.upsert(
+            ids=ids,
+            embeddings=embeddings,
+            documents=documents,
+            metadatas=metadatas
+        )
+        print(f"  {filepath.name}: {len(chunks)} chunks indexed")
+
+    print("\nDONE: Indexing completed.")
 
 
 # =============================================================================
@@ -315,7 +314,6 @@ if __name__ == "__main__":
             print(f"  preview: {c['text'][:100].strip()}...")
         print()
 
-    # Sau khi Tech Lead implement get_embedding():
-    # build_index()
-    # list_chunks()
-    # inspect_metadata_coverage()
+    build_index()
+    list_chunks()
+    inspect_metadata_coverage()
