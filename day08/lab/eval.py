@@ -315,6 +315,16 @@ def run_pipeline(questions: List[Dict], config: Dict, label: str = "") -> List[D
             "timestamp":            datetime.now().isoformat(),
         }
         results.append(row)
+        
+        log.append({
+            "id": question_id,
+            "question": query,
+            "answer": answer,
+            "sources": result["sources"],
+            "chunks_retrieved": len(chunks_used),
+            "retrieval_mode": result["config"]["retrieval_mode"],
+            "timestamp": datetime.now().isoformat(),
+        })
 
         print(f"  Answer: {answer[:100]}...")
         print(f"  Faithful: {faith['score']} | Relevant: {relevance['score']} | "
