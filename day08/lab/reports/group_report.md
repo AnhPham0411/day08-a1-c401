@@ -6,7 +6,7 @@
 |-----|---------|-------|
 | Phạm Tuấn Anh | Tech Lead | bintuananh2003@gmail.com |
 | Hoàng Tuấn Anh | Retrieval Owner | stephenhtuananh@gmail.com |
-| ___ | Eval Owner A | ___ |
+| Vũ Hồng Quang | Eval Owner A | quangzetsu@gmail.com |
 | Nguyễn Quang Trường | Eval Owner B | quangtruongpt0@gmail.com |
 | Đàm Lê Văn Toàn | Documentation Owner | damtoan321@gmail.com |
 | ___ | Prompt Engineer & LLM Judge | ___ |
