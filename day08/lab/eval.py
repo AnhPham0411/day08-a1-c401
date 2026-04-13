@@ -420,8 +420,7 @@ def compute_scorecard(results: List[Dict], label: str = "") -> Dict:
 
     faithfulness_scores = [r["faithfulness"] for r in results if r["faithfulness"] is not None]
     relevance_scores    = [r["relevance"]    for r in results if r["relevance"]    is not None]
-    recall_scores       = [1 if r["context_recall"] else 0
-                           for r in results if r["context_recall"] is not None]
+    recall_scores       = [r["context_recall"] for r in results if r["context_recall"] is not None]
 
     scorecard = {
         "label":          label,
@@ -434,9 +433,9 @@ def compute_scorecard(results: List[Dict], label: str = "") -> Dict:
 
     print(f"\n{'='*50}")
     print(f"SCORECARD: {label}")
-    print(f"  Faithfulness   : {scorecard['faithfulness']:.1%}"   if scorecard['faithfulness']   is not None else "  Faithfulness   : N/A")
-    print(f"  Relevance      : {scorecard['relevance']:.1%}"      if scorecard['relevance']      is not None else "  Relevance      : N/A")
-    print(f"  Context Recall : {scorecard['context_recall']:.1%}" if scorecard['context_recall'] is not None else "  Context Recall : N/A")
+    print(f"  Faithfulness   : {scorecard['faithfulness']:.2f}/5.0"   if scorecard['faithfulness']   is not None else "  Faithfulness   : N/A")
+    print(f"  Relevance      : {scorecard['relevance']:.2f}/5.0"      if scorecard['relevance']      is not None else "  Relevance      : N/A")
+    print(f"  Context Recall : {scorecard['context_recall']:.2f}/5.0" if scorecard['context_recall'] is not None else "  Context Recall : N/A")
     print(f"  N questions    : {n}")
     print('='*50)
 
@@ -469,7 +468,7 @@ def compare_ab(scorecard_baseline: Dict, scorecard_variant: Dict) -> None:
             continue
         delta   = v - b
         verdict = "BETTER ↑" if delta > 0.05 else ("WORSE ↓" if delta < -0.05 else "NEUTRAL →")
-        print(f"{m:<20} {b:>10.1%} {v:>10.1%} {delta:>+10.1%} {verdict}")
+        print(f"{m:<20} {b:>10.2f} {v:>10.2f} {delta:>+10.2f} {verdict}")
 
     print('='*60)
     print("\nKet luan cho tuning-log.md:")
@@ -508,9 +507,9 @@ def save_scorecard_md(results: List[Dict], scorecard: Dict, filename: str) -> No
         f"",
         f"| Metric | Score |",
         f"|--------|-------|",
-        f"| Faithfulness   | {scorecard.get('faithfulness', 'N/A'):.1%} |" if scorecard.get('faithfulness') is not None else "| Faithfulness   | N/A |",
-        f"| Relevance      | {scorecard.get('relevance',    'N/A'):.1%} |" if scorecard.get('relevance')    is not None else "| Relevance      | N/A |",
-        f"| Context Recall | {scorecard.get('context_recall', 'N/A'):.1%} |" if scorecard.get('context_recall') is not None else "| Context Recall | N/A |",
+        f"| Faithfulness   | {scorecard.get('faithfulness', 'N/A'):.2f}/5.0 |" if scorecard.get('faithfulness') is not None else "| Faithfulness   | N/A |",
+        f"| Relevance      | {scorecard.get('relevance',    'N/A'):.2f}/5.0 |" if scorecard.get('relevance')    is not None else "| Relevance      | N/A |",
+        f"| Context Recall | {scorecard.get('context_recall', 'N/A'):.2f}/5.0 |" if scorecard.get('context_recall') is not None else "| Context Recall | N/A |",
         f"",
         f"## Chi tiet tung cau",
         f"",
@@ -561,10 +560,10 @@ def run_scorecard(config: Dict, questions: List[Dict], label: str, use_llm_judge
     run_rag_answer → cham scorecard → tra ve (results, scorecard)
     """
     results   = run_pipeline(questions, config, label)
-    if use_llm_judge:
-        results = score_with_llm(results)
-    else:
-        results = score_manually(results)
+    # if use_llm_judge:
+    #     results = score_with_llm(results)
+    # else:
+    #     results = score_manually(results)
     scorecard = compute_scorecard(results, label)
     return results, scorecard
 

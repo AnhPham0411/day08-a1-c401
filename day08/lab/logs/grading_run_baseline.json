@@ -8,20 +8,20 @@
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:38:03.900646"
+    "timestamp": "2026-04-13T17:51:33.041231"
   },
   {
     "id": "gq02",
     "question": "Khi làm việc remote, tôi phải dùng VPN và được kết nối trên tối đa bao nhiêu thiết bị?",
     "answer": "Khi làm việc remote, bạn phải sử dụng **VPN** để kết nối với hệ thống nội bộ và mỗi tài khoản được kết nối VPN trên tối đa **2 thiết bị** cùng lúc [1][2].",
     "sources": [
+      "hr/leave-policy-2026.pdf",
       "it/access-control-sop.md",
-      "support/helpdesk-faq.md",
-      "hr/leave-policy-2026.pdf"
+      "support/helpdesk-faq.md"
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:38:10.000235"
+    "timestamp": "2026-04-13T17:51:37.055108"
   },
   {
     "id": "gq03",
@@ -32,7 +32,7 @@
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:38:16.035960"
+    "timestamp": "2026-04-13T17:51:42.989570"
   },
   {
     "id": "gq04",
@@ -43,7 +43,7 @@
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:38:21.555162"
+    "timestamp": "2026-04-13T17:51:47.440095"
   },
   {
     "id": "gq05",
@@ -54,56 +54,56 @@
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:38:24.192679"
+    "timestamp": "2026-04-13T17:51:50.308338"
   },
   {
     "id": "gq06",
     "question": "Lúc 2 giờ sáng xảy ra sự cố P1, on-call engineer cần cấp quyền tạm thời cho một engineer xử lý incident. Quy trình cụ thể như thế nào và quyền này tồn tại bao lâu?",
     "answer": "Quy trình cấp quyền tạm thời cho engineer xử lý sự cố P1 như sau:\n\n1. **On-call IT Admin** có thể cấp quyền tạm thời sau khi được **Tech Lead** phê duyệt bằng lời.\n2. Quyền tạm thời này có thể tồn tại tối đa **24 giờ**.\n3. Sau **24 giờ**, phải có ticket chính thức hoặc quyền sẽ bị thu hồi tự động.\n4. Mọi quyền tạm thời phải được ghi log vào hệ thống **Security Audit** [1].",
     "sources": [
-      "it/access-control-sop.md",
-      "support/sla-p1-2026.pdf"
+      "support/sla-p1-2026.pdf",
+      "it/access-control-sop.md"
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:38:30.241256"
+    "timestamp": "2026-04-13T17:51:56.291139"
   },
   {
     "id": "gq07",
     "question": "Công ty sẽ phạt bao nhiêu nếu team IT vi phạm cam kết SLA P1?",
     "answer": "Tôi không có đủ dữ liệu trong tài liệu nội bộ để trả lời câu hỏi này.",
     "sources": [
-      "it/access-control-sop.md",
       "support/sla-p1-2026.pdf",
+      "it/access-control-sop.md",
       "support/helpdesk-faq.md"
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:38:34.038013"
+    "timestamp": "2026-04-13T17:52:00.921454"
   },
   {
     "id": "gq08",
     "question": "Nhân viên phải báo trước bao nhiêu ngày để xin nghỉ phép năm? Con số này có giống với số ngày cần giấy tờ khi nghỉ ốm không?",
     "answer": "Nhân viên phải báo trước **3 ngày làm việc** để xin nghỉ phép năm [2]. Trong khi đó, khi nghỉ ốm, nếu nghỉ trên **3 ngày liên tiếp**, nhân viên cần có giấy tờ y tế từ bệnh viện [1]. Do đó, con số này không giống nhau.",
     "sources": [
-      "it/access-control-sop.md",
-      "hr/leave-policy-2026.pdf"
+      "hr/leave-policy-2026.pdf",
+      "it/access-control-sop.md"
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:38:38.273937"
+    "timestamp": "2026-04-13T17:52:05.116604"
   },
   {
     "id": "gq09",
     "question": "Mật khẩu tài khoản công ty cần đổi định kỳ không? Nếu có, hệ thống sẽ nhắc nhở trước bao nhiêu ngày và đổi qua đâu?",
-    "answer": "Mật khẩu tài khoản công ty cần phải thay đổi định kỳ. Cụ thể, mật khẩu phải được thay đổi mỗi **90 ngày**. Hệ thống sẽ nhắc nhở người dùng **7 ngày** trước khi mật khẩu hết hạn. Người dùng có thể thực hiện việc thay đổi mật khẩu qua portal SSO [1].",
+    "answer": "Mật khẩu tài khoản công ty cần được thay đổi định kỳ. Cụ thể, mật khẩu phải được thay đổi mỗi **90 ngày**. Hệ thống sẽ nhắc nhở người dùng **7 ngày** trước khi mật khẩu hết hạn. Người dùng có thể thực hiện việc thay đổi mật khẩu qua portal SSO [1].",
     "sources": [
       "it/access-control-sop.md",
       "support/helpdesk-faq.md"
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:38:42.834955"
+    "timestamp": "2026-04-13T17:52:09.444495"
   },
   {
     "id": "gq10",
@@ -114,6 +114,6 @@
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:38:47.646977"
+    "timestamp": "2026-04-13T17:52:13.123112"
   }
 ]
