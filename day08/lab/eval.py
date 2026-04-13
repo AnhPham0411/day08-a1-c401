@@ -282,6 +282,11 @@ def run_pipeline(questions: List[Dict], config: Dict, label: str = "") -> List[D
     Chay rag_answer() cho toan bo danh sach cau hoi voi config cho truoc.
     Tra ve list ket qua kem thong tin cham diem.
     """
+    if test_questions is None:
+        with open(TEST_QUESTIONS_PATH, "r", encoding="utf-8") as f:
+            test_questions = json.load(f)
+
+    log = []
     results = []
     print(f"\n{'='*50}")
     print(f"Chay pipeline: {label or config['retrieval_mode']}")
@@ -317,25 +322,41 @@ def run_pipeline(questions: List[Dict], config: Dict, label: str = "") -> List[D
         # Cham Context Recall tu dong
         context_recall = _check_context_recall(exp_src, chunks) if exp_src else None
 
-        print(f"  Answer:  {answer[:100]}...")
-        print(f"  Sources: {sources}")
-        if context_recall is not None:
-            print(f"  Context Recall: {'PASS' if context_recall else 'FAIL'}")
+        row = {
+            "id": question_id,
+            "category": category,
+            "query": query,
+            "answer": answer,
+            "expected_answer": expected_answer,
+            "faithfulness": faith["score"],
+            "faithfulness_notes": faith["notes"],
+            "relevance": relevance["score"],
+            "relevance_notes": relevance["notes"],
+            "context_recall": recall["score"],
+            "context_recall_notes": recall["notes"],
+            "completeness": complete["score"],
+            "completeness_notes": complete["notes"],
+            "config_label": label,
+        }
+        results.append(row)
+        
+        log.append({
+            "id": question_id,
+            "question": query,
+            "answer": answer,
+            "sources": result["sources"],
+            "chunks_retrieved": len(chunks_used),
+            "retrieval_mode": result["config"]["retrieval_mode"],
+            "timestamp": datetime.now().isoformat(),
+        })
 
         if verbose:
             print(f"  Answer: {answer[:100]}...")
             print(f"  Faithful: {faith['score']} | Relevant: {relevance['score']} | "
                   f"Recall: {recall['score']} | Complete: {complete['score']}")
 
-    grading_run = {
-        "run_id": f"{time.time()}_{question_id}",
-        "model_judge": os.getenv("LLM_MODEL"),
-        "dataset": "internal",
-        "samples": results
-    }
-    
-    with open(RESULTS_DIR / f"grading_run_{question_id}.json", "w", encoding="utf-8") as f:
-        json.dump(grading_run, f, ensure_ascii=False, indent=2)
+    with open("logs/grading_run.json", "w", encoding="utf-8") as f:
+        json.dump(log, f, ensure_ascii=False, indent=2)
 
     # Tính averages (bỏ qua None)
     for metric in ["faithfulness", "relevance", "context_recall", "completeness"]:
