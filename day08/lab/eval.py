@@ -428,27 +428,25 @@ def compute_scorecard(results: List[Dict], label: str = "") -> Dict:
     if n == 0:
         return {}
 
-    faithfulness_scores  = [r["faithfulness"]    for r in results if r.get("faithfulness")    is not None]
-    relevance_scores     = [r["relevance"]        for r in results if r.get("relevance")        is not None]
-    recall_scores        = [r["context_recall"]   for r in results if r.get("context_recall")   is not None]
-    completeness_scores  = [r["completeness"]     for r in results if r.get("completeness")     is not None]
+    faithfulness_scores = [r["faithfulness"] for r in results if r["faithfulness"] is not None]
+    relevance_scores    = [r["relevance"]    for r in results if r["relevance"]    is not None]
+    recall_scores       = [1 if r["context_recall"] else 0
+                           for r in results if r["context_recall"] is not None]
 
     scorecard = {
         "label":          label,
         "n_questions":    n,
-        "faithfulness":   round(sum(faithfulness_scores) / len(faithfulness_scores), 2) if faithfulness_scores else None,
-        "relevance":      round(sum(relevance_scores)    / len(relevance_scores),    2) if relevance_scores    else None,
-        "context_recall": round(sum(recall_scores)       / len(recall_scores),       2) if recall_scores       else None,
-        "completeness":   round(sum(completeness_scores) / len(completeness_scores), 2) if completeness_scores else None,
+        "faithfulness":   round(sum(faithfulness_scores) / len(faithfulness_scores), 3) if faithfulness_scores else None,
+        "relevance":      round(sum(relevance_scores)    / len(relevance_scores),    3) if relevance_scores    else None,
+        "context_recall": round(sum(recall_scores)       / len(recall_scores),       3) if recall_scores       else None,
         "retrieval_mode": results[0]["retrieval_mode"] if results else "unknown",
     }
 
     print(f"\n{'='*50}")
     print(f"SCORECARD: {label}")
-    print(f"  Faithfulness   : {scorecard['faithfulness']:.2f}"   if scorecard['faithfulness']   is not None else "  Faithfulness   : N/A")
-    print(f"  Relevance      : {scorecard['relevance']:.2f}"      if scorecard['relevance']      is not None else "  Relevance      : N/A")
-    print(f"  Context Recall : {scorecard['context_recall']:.2f}" if scorecard['context_recall'] is not None else "  Context Recall : N/A")
-    print(f"  Completeness   : {scorecard['completeness']:.2f}"   if scorecard['completeness']   is not None else "  Completeness   : N/A")
+    print(f"  Faithfulness   : {scorecard['faithfulness']:.1%}"   if scorecard['faithfulness']   is not None else "  Faithfulness   : N/A")
+    print(f"  Relevance      : {scorecard['relevance']:.1%}"      if scorecard['relevance']      is not None else "  Relevance      : N/A")
+    print(f"  Context Recall : {scorecard['context_recall']:.1%}" if scorecard['context_recall'] is not None else "  Context Recall : N/A")
     print(f"  N questions    : {n}")
     print('='*50)
 
@@ -459,111 +457,38 @@ def compute_scorecard(results: List[Dict], label: str = "") -> Dict:
 # STEP 4: COMPARE A/B
 # =============================================================================
 
-def _fmt_score(val) -> str:
-    """Format a single metric score: int as-is, None as 'None'."""
-    if val is None:
-        return "None"
-    return str(int(val))
-
-
-def _fmt_frrc(r: Dict) -> str:
-    """Format one row as  F/R/Rc/C  string."""
-    f  = _fmt_score(r.get("faithfulness"))
-    re = _fmt_score(r.get("relevance"))
-    rc = _fmt_score(r.get("context_recall"))
-    c  = _fmt_score(r.get("completeness"))
-    return f"{f}/{re}/{rc}/{c}"
-
-
-def _row_sum(r: Dict) -> float:
-    """Sum of non-None metric scores for Better? verdict."""
-    total = 0.0
-    for key in ("faithfulness", "relevance", "context_recall", "completeness"):
-        v = r.get(key)
-        if v is not None:
-            total += v
-    return total
-
-
-def compare_ab(
-    scorecard_baseline: Dict,
-    scorecard_variant:  Dict,
-    results_baseline:   List[Dict] = None,
-    results_variant:    List[Dict] = None,
-) -> None:
+def compare_ab(scorecard_baseline: Dict, scorecard_variant: Dict) -> None:
     """
     In bang so sanh delta giua baseline va variant.
-
-    Phan 1 — Summary averages (raw scores, not %)
-    Phan 2 — Per-question  F/R/Rc/C  voi ket luan Better?
+    Delta duong → variant tot hon.
     """
-    SEP  = "=" * 70
-    DASH = "-" * 70
-    METRICS = [
-        ("faithfulness",   "faithfulness"),
-        ("relevance",      "relevance"),
-        ("context_recall", "context_recall"),
-        ("completeness",   "completeness"),
-    ]
+    metrics = ["faithfulness", "relevance", "context_recall"]
 
-    # ── Header ──────────────────────────────────────────────────────────────
-    print(f"\nA/B Comparison: Baseline vs Variant")
-    print(SEP)
-    print(f"{'Metric':<20} {'Baseline':>10} {'Variant':>10} {'Delta':>10}")
-    print(DASH)
+    print(f"\n{'='*60}")
+    print("A/B COMPARISON")
+    print(f"  Baseline : {scorecard_baseline.get('label')} ({scorecard_baseline.get('retrieval_mode')})")
+    print(f"  Variant  : {scorecard_variant.get('label')} ({scorecard_variant.get('retrieval_mode')})")
+    print(f"\n{'Metric':<20} {'Baseline':>10} {'Variant':>10} {'Delta':>10} {'Ket luan'}")
+    print('-'*60)
 
-    for label, key in METRICS:
-        b = scorecard_baseline.get(key)
-        v = scorecard_variant.get(key)
-
+    for m in metrics:
+        b = scorecard_baseline.get(m)
+        v = scorecard_variant.get(m)
         if b is None or v is None:
-            print(f"{label:<20} {'N/A':>10} {'N/A':>10} {'N/A':>10}")
+            print(f"{m:<20} {'N/A':>10} {'N/A':>10} {'N/A':>10}")
             continue
+        delta   = v - b
+        verdict = "BETTER ↑" if delta > 0.05 else ("WORSE ↓" if delta < -0.05 else "NEUTRAL →")
+        print(f"{m:<20} {b:>10.1%} {v:>10.1%} {delta:>+10.1%} {verdict}")
 
-        delta = round(v - b, 2)
-        # Show N/A when delta is zero (no meaningful change)
-        delta_str = f"{delta:+.2f}" if delta != 0 else "N/A"
-        print(f"{label:<20} {b:>10.2f} {v:>10.2f} {delta_str:>10}")
-
-    # ── Per-question breakdown ───────────────────────────────────────────────
-    if results_baseline and results_variant:
-        variant_by_id = {r["id"]: r for r in results_variant}
-
-        print()
-        print(f"{'Câu':<8} {'Baseline F/R/Rc/C':<22} {'Variant F/R/Rc/C':<22} {'Better?'}")
-        print(DASH)
-
-        for r_b in results_baseline:
-            qid = r_b["id"]
-            r_v = variant_by_id.get(qid, {})
-
-            b_str = _fmt_frrc(r_b)
-            v_str = _fmt_frrc(r_v)
-
-            b_sum = _row_sum(r_b)
-            v_sum = _row_sum(r_v)
-
-            if b_sum > v_sum:
-                verdict = "Baseline"
-            elif v_sum > b_sum:
-                verdict = "Variant"
-            else:
-                verdict = "Tie"
-
-            print(f"{qid:<8} {b_str:<22} {v_str:<22} {verdict}")
-
-    print(SEP)
-
-    # ── Tổng kết cho tuning-log.md ──────────────────────────────────────────
+    print('='*60)
     print("\nKet luan cho tuning-log.md:")
-    improvements = [key for _, key in METRICS
-                    if scorecard_variant.get(key) is not None
-                    and scorecard_baseline.get(key) is not None
-                    and scorecard_variant[key] - scorecard_baseline[key] > 0.05]
-    regressions  = [key for _, key in METRICS
-                    if scorecard_variant.get(key) is not None
-                    and scorecard_baseline.get(key) is not None
-                    and scorecard_variant[key] - scorecard_baseline[key] < -0.05]
+    improvements = [m for m in metrics
+                    if scorecard_variant.get(m) and scorecard_baseline.get(m)
+                    and scorecard_variant[m] - scorecard_baseline[m] > 0.05]
+    regressions  = [m for m in metrics
+                    if scorecard_variant.get(m) and scorecard_baseline.get(m)
+                    and scorecard_variant[m] - scorecard_baseline[m] < -0.05]
 
     if improvements:
         print(f"  Variant tot hon o: {', '.join(improvements)}")
@@ -593,26 +518,22 @@ def save_scorecard_md(results: List[Dict], scorecard: Dict, filename: str) -> No
         f"",
         f"| Metric | Score |",
         f"|--------|-------|",
-        f"| Faithfulness   | {scorecard.get('faithfulness', 'N/A'):.2f} |" if scorecard.get('faithfulness') is not None else "| Faithfulness   | N/A |",
-        f"| Relevance      | {scorecard.get('relevance',    'N/A'):.2f} |" if scorecard.get('relevance')    is not None else "| Relevance      | N/A |",
-        f"| Context Recall | {scorecard.get('context_recall', 'N/A'):.2f} |" if scorecard.get('context_recall') is not None else "| Context Recall | N/A |",
-        f"| Completeness   | {scorecard.get('completeness', 'N/A'):.2f} |" if scorecard.get('completeness') is not None else "| Completeness   | N/A |",
+        f"| Faithfulness   | {scorecard.get('faithfulness', 'N/A'):.1%} |" if scorecard.get('faithfulness') is not None else "| Faithfulness   | N/A |",
+        f"| Relevance      | {scorecard.get('relevance',    'N/A'):.1%} |" if scorecard.get('relevance')    is not None else "| Relevance      | N/A |",
+        f"| Context Recall | {scorecard.get('context_recall', 'N/A'):.1%} |" if scorecard.get('context_recall') is not None else "| Context Recall | N/A |",
         f"",
         f"## Chi tiet tung cau",
         f"",
-        f"| ID | Question | Faithful | Relevant | Recall | Complete | Answer preview |",
-        f"|----|----------|----------|----------|--------|----------|----------------|",
+        f"| ID | Question | Faithful | Relevant | Recall | Answer preview |",
+        f"|----|----------|----------|----------|--------|----------------|",
     ]
 
     for r in results:
         f_score = r.get("faithfulness", "-")
         r_score = r.get("relevance",    "-")
-        rc      = r.get("context_recall", "-")
-        c_score = r.get("completeness", "-")
+        recall  = "✓" if r.get("context_recall") else ("✗" if r.get("context_recall") is False else "-")
         preview = r["answer"][:60].replace("|", "/")
-        lines.append(
-            f"| {r['id']} | {r['query'][:40]} | {f_score} | {r_score} | {rc} | {c_score} | {preview}... |"
-        )
+        lines.append(f"| {r['id']} | {r['query'][:40]} | {f_score} | {r_score} | {recall} | {preview}... |")
 
     path.write_text("\n".join(lines), encoding="utf-8")
     print(f"Saved: {path}")
@@ -648,12 +569,12 @@ def run_scorecard(config: Dict, questions: List[Dict], label: str, use_llm_judge
     """
     Chay toan bo vong lap cho 1 config:
     run_rag_answer → cham scorecard → tra ve (results, scorecard)
-
-    NOTE: scoring 1-5 da duoc thuc hien ben trong run_pipeline() thong qua
-    score_faithfulness / score_answer_relevance / score_context_recall / score_completeness.
-    Khong goi score_with_llm() vi no se ghi de diem 1-5 bang gia tri nhi phan 0/1.
     """
     results   = run_pipeline(questions, config, label)
+    if use_llm_judge:
+        results = score_with_llm(results)
+    else:
+        results = score_manually(results)
     scorecard = compute_scorecard(results, label)
     return results, scorecard
 
@@ -676,9 +597,6 @@ if __name__ == "__main__":
     use_llm = bool(os.getenv("OPENAI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
     if not use_llm:
         print("Khong co API key → chuyen sang cham thu cong")
-
-    baseline_results, baseline_scorecard = None, {}
-    variant_results,  variant_scorecard  = None, {}
 
     # === CHAY BASELINE ===
     if mode in ("both", "baseline"):
@@ -703,12 +621,7 @@ if __name__ == "__main__":
         save_grading_log(variant_results, "grading_run_variant.json")
 
     # === SO SANH A/B ===
-    if mode == "both" and baseline_results and variant_results:
-        compare_ab(
-            scorecard_baseline = baseline_scorecard,
-            scorecard_variant  = variant_scorecard,
-            results_baseline   = baseline_results,
-            results_variant    = variant_results,
-        )
+    if mode == "both":
+        compare_ab(baseline_scorecard, variant_scorecard)
 
     print("\nHoan thanh! Ket qua luu trong results/ va logs/")
