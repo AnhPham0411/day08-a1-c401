@@ -23,7 +23,7 @@ load_dotenv()
 TOP_K_SEARCH = 10   # Search rong
 TOP_K_SELECT = 3    # Dua vao prompt
 
-LLM_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
+LLM_MODEL = os.getenv("LLM_MODEL", "qwen/qwen3-next-80b-a3b-instruct:free")
 
 # Lazy singletons
 _chroma_collection = None
