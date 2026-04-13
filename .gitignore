@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+
+# Data & DB
+chroma_db/
+logs/grading_run.json
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
