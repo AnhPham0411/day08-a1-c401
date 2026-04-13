@@ -7,29 +7,28 @@
 
 ## Baseline (Sprint 2)
 
-**Ngày:** ___________  
+**Ngày:** __13/04/2026__  
 **Config:**
 ```
 retrieval_mode = "dense"
-chunk_size = _____ tokens
-overlap = _____ tokens
+chunk_size = 400 tokens
+overlap = 80 tokens
 top_k_search = 10
 top_k_select = 3
-use_rerank = False
-llm_model = _____
+use_rerank = True
+llm_model = "gpt-4o-mini"
 ```
 
 **Scorecard Baseline:**
 | Metric | Average Score |
 |--------|--------------|
-| Faithfulness | ? /5 |
-| Answer Relevance | ? /5 |
-| Context Recall | ? /5 |
-| Completeness | ? /5 |
+| Faithfulness | 5 /5 |
+| Answer Relevance | 4 /5 |
+| Context Recall | 5 /5 |
+| Completeness | 5 /5 |
 
 **Câu hỏi yếu nhất (điểm thấp):**
-> TODO: Liệt kê 2-3 câu hỏi có điểm thấp nhất và lý do tại sao.
-> Ví dụ: "q07 (Approval Matrix) - context recall = 1/5 vì dense bỏ lỡ alias."
+> "q09 (ERR-403-AUTH là lỗi gì và cách xử lý?) - Không đủ dữ liệu để trả lời"
 
 **Giả thuyết nguyên nhân (Error Tree):**
 - [ ] Indexing: Chunking cắt giữa điều khoản
@@ -38,6 +37,7 @@ llm_model = _____
 - [ ] Retrieval: Top-k quá ít → thiếu evidence
 - [ ] Generation: Prompt không đủ grounding
 - [ ] Generation: Context quá dài → lost in the middle
+- [x] Không đủ dữ liệu: dữ liệu ban đầu quá ít dẫn đến hầu như các câu trả lời có trong db đều đúng.  
 
 ---
 

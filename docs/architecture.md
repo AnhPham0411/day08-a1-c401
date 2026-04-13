@@ -36,8 +36,8 @@
 ### Quyết định chunking
 | Tham số | Giá trị | Lý do |
 |---------|---------|-------|
-| Chunk size | TODO tokens | TODO |
-| Overlap | TODO tokens | TODO |
+| Chunk size | 400 tokens | TODO |
+| Overlap | 80 tokens | TODO |
 | Chunking strategy | Heading-based / paragraph-based | TODO |
 | Metadata fields | source, section, effective_date, department, access | Phục vụ filter, freshness, citation |
 
@@ -96,7 +96,7 @@ Answer:
 ### LLM Configuration
 | Tham số | Giá trị |
 |---------|---------|
-| Model | TODO (gpt-4o-mini / gemini-1.5-flash) |
+| Model | gpt-4o-mini  |
 | Temperature | 0 (để output ổn định cho eval) |
 | Max tokens | 512 |
 
