@@ -10,31 +10,31 @@
     ],
     "chunks_retrieved": 5,
     "retrieval_mode": "hybrid",
-    "timestamp": "2026-04-13T17:39:18.336747"
+    "timestamp": "2026-04-13T18:11:34.560970"
   },
   {
     "id": "gq02",
     "question": "Khi làm việc remote, tôi phải dùng VPN và được kết nối trên tối đa bao nhiêu thiết bị?",
     "answer": "Khi làm việc remote, bạn phải sử dụng **VPN** để kết nối với hệ thống nội bộ [1]. Mỗi tài khoản được kết nối VPN trên tối đa **2 thiết bị** cùng lúc [2].",
     "sources": [
-      "support/sla-p1-2026.pdf",
+      "hr/leave-policy-2026.pdf",
       "support/helpdesk-faq.md",
-      "hr/leave-policy-2026.pdf"
+      "support/sla-p1-2026.pdf"
     ],
     "chunks_retrieved": 5,
     "retrieval_mode": "hybrid",
-    "timestamp": "2026-04-13T17:39:27.273166"
+    "timestamp": "2026-04-13T18:11:44.928426"
   },
   {
     "id": "gq03",
     "question": "Đơn hàng mua trong chương trình Flash Sale và đã kích hoạt sản phẩm có được hoàn tiền không?",
-    "answer": "Đơn hàng mua trong chương trình **Flash Sale** và đã kích hoạt sản phẩm **không được hoàn tiền**. Cụ thể:\n\n- Đơn hàng đã áp dụng mã giảm giá đặc biệt theo chương trình khuyến mãi **Flash Sale** không đủ điều kiện hoàn tiền [1].\n- Sản phẩm đã được **kích hoạt** cũng không đủ điều kiện hoàn tiền [1]. \n\nDo đó, cả hai điều kiện này đều dẫn đến việc không được hoàn tiền.",
+    "answer": "Đơn hàng mua trong chương trình **Flash Sale** và đã kích hoạt sản phẩm **không được hoàn tiền**. Cụ thể:\n\n- Đơn hàng đã áp dụng mã giảm giá đặc biệt theo chương trình khuyến mãi **Flash Sale** sẽ không được hoàn tiền [1].\n- Sản phẩm đã được kích hoạt cũng không đủ điều kiện hoàn tiền [1].",
     "sources": [
       "policy/refund-v4.pdf"
     ],
     "chunks_retrieved": 5,
     "retrieval_mode": "hybrid",
-    "timestamp": "2026-04-13T17:39:37.835582"
+    "timestamp": "2026-04-13T18:11:55.467541"
   },
   {
     "id": "gq04",
@@ -46,20 +46,20 @@
     ],
     "chunks_retrieved": 5,
     "retrieval_mode": "hybrid",
-    "timestamp": "2026-04-13T17:39:46.458841"
+    "timestamp": "2026-04-13T18:12:03.410133"
   },
   {
     "id": "gq05",
     "question": "Contractor từ bên ngoài công ty có thể được cấp quyền Admin Access không? Nếu có, cần bao nhiêu ngày và có yêu cầu đặc biệt gì?",
-    "answer": "Contractor từ bên ngoài công ty có thể được cấp quyền Admin Access. Quy trình cấp quyền này áp dụng cho tất cả nhân viên, contractor, và third-party vendor [4]. \n\nĐể được cấp quyền, contractor cần thực hiện các bước sau:\n1. Tạo Access Request ticket trên Jira (project IT-ACCESS) [3].\n2. Line Manager phê duyệt yêu cầu trong **1 ngày làm việc** [3].\n3. IT Admin kiểm tra compliance và cấp quyền [3].\n4. IT Security review với Level 3 và Level 4 [3].\n5. Contractor sẽ nhận thông báo qua email khi quyền được cấp [3].\n\nKhông có yêu cầu đặc biệt nào khác được nêu trong tài liệu.",
+    "answer": "Contractor từ bên ngoài công ty có thể được cấp quyền Admin Access. Quy trình cấp quyền này áp dụng cho tất cả nhân viên, contractor, và third-party vendor [4]. \n\nĐể được cấp quyền, contractor cần thực hiện các bước sau:\n1. Tạo Access Request ticket trên Jira (project IT-ACCESS) [3].\n2. Yêu cầu sẽ được phê duyệt bởi Line Manager trong vòng **1 ngày làm việc** [3].\n3. IT Admin sẽ kiểm tra compliance và cấp quyền [3].\n\nNgoài ra, trong trường hợp khẩn cấp, có thể thực hiện quy trình escalation để cấp quyền tạm thời (max 24 giờ) sau khi được Tech Lead phê duyệt bằng lời [1].",
     "sources": [
       "it/access-control-sop.md",
-      "support/helpdesk-faq.md",
-      "hr/leave-policy-2026.pdf"
+      "hr/leave-policy-2026.pdf",
+      "support/helpdesk-faq.md"
     ],
     "chunks_retrieved": 5,
     "retrieval_mode": "hybrid",
-    "timestamp": "2026-04-13T17:39:57.954867"
+    "timestamp": "2026-04-13T18:12:15.523612"
   },
   {
     "id": "gq06",
@@ -71,7 +71,7 @@
     ],
     "chunks_retrieved": 5,
     "retrieval_mode": "hybrid",
-    "timestamp": "2026-04-13T17:40:08.992228"
+    "timestamp": "2026-04-13T18:12:30.680835"
   },
   {
     "id": "gq07",
@@ -79,49 +79,49 @@
     "answer": "Tôi không có đủ dữ liệu trong tài liệu nội bộ để trả lời câu hỏi này.",
     "sources": [
       "it/access-control-sop.md",
-      "support/sla-p1-2026.pdf",
-      "support/helpdesk-faq.md"
+      "support/helpdesk-faq.md",
+      "support/sla-p1-2026.pdf"
     ],
     "chunks_retrieved": 5,
     "retrieval_mode": "hybrid",
-    "timestamp": "2026-04-13T17:40:17.120453"
+    "timestamp": "2026-04-13T18:12:38.527893"
   },
   {
     "id": "gq08",
     "question": "Nhân viên phải báo trước bao nhiêu ngày để xin nghỉ phép năm? Con số này có giống với số ngày cần giấy tờ khi nghỉ ốm không?",
-    "answer": "Nhân viên phải gửi yêu cầu nghỉ phép năm qua hệ thống HR Portal ít nhất **3 ngày làm việc** trước ngày nghỉ [2]. Trong khi đó, khi nghỉ ốm, nếu nghỉ trên **3 ngày liên tiếp**, nhân viên cần có giấy tờ y tế từ bệnh viện [1]. \n\nVì vậy, con số này không giống nhau; yêu cầu báo trước cho nghỉ phép năm là **3 ngày** trong khi yêu cầu giấy tờ cho nghỉ ốm chỉ áp dụng khi nghỉ **trên 3 ngày liên tiếp**.",
+    "answer": "Nhân viên phải gửi yêu cầu nghỉ phép năm qua hệ thống HR Portal ít nhất **3 ngày làm việc** trước ngày nghỉ [2]. Trong khi đó, khi nghỉ ốm, nếu nghỉ trên **3 ngày liên tiếp**, nhân viên cần có giấy tờ y tế từ bệnh viện [1]. \n\nVì vậy, con số này không giống nhau; yêu cầu báo trước cho nghỉ phép năm là **3 ngày** trong khi yêu cầu giấy tờ cho nghỉ ốm chỉ áp dụng khi nghỉ trên **3 ngày liên tiếp**.",
     "sources": [
-      "it/access-control-sop.md",
+      "hr/leave-policy-2026.pdf",
       "policy/refund-v4.pdf",
-      "hr/leave-policy-2026.pdf"
+      "it/access-control-sop.md"
     ],
     "chunks_retrieved": 5,
     "retrieval_mode": "hybrid",
-    "timestamp": "2026-04-13T17:40:28.676177"
+    "timestamp": "2026-04-13T18:12:50.669634"
   },
   {
     "id": "gq09",
     "question": "Mật khẩu tài khoản công ty cần đổi định kỳ không? Nếu có, hệ thống sẽ nhắc nhở trước bao nhiêu ngày và đổi qua đâu?",
-    "answer": "Có, mật khẩu tài khoản công ty cần được thay đổi định kỳ mỗi **90 ngày**. Hệ thống sẽ nhắc nhở trước **7 ngày** khi mật khẩu sắp hết hạn. Người dùng có thể đổi mật khẩu qua trang web SSO tại địa chỉ https://sso.company.internal/reset [1].",
+    "answer": "Có, mật khẩu tài khoản công ty cần được thay đổi định kỳ mỗi **90 ngày**. Hệ thống sẽ nhắc nhở nhân viên **7 ngày** trước khi mật khẩu hết hạn. Nhân viên có thể đổi mật khẩu qua trang web SSO tại địa chỉ https://sso.company.internal/reset [1].",
     "sources": [
       "it/access-control-sop.md",
-      "support/helpdesk-faq.md",
-      "hr/leave-policy-2026.pdf"
+      "hr/leave-policy-2026.pdf",
+      "support/helpdesk-faq.md"
     ],
     "chunks_retrieved": 5,
     "retrieval_mode": "hybrid",
-    "timestamp": "2026-04-13T17:40:38.749784"
+    "timestamp": "2026-04-13T18:13:02.341587"
   },
   {
     "id": "gq10",
     "question": "Chính sách hoàn tiền hiện tại áp dụng cho đơn hàng đặt trước ngày 01/02/2026 không?",
     "answer": "Chính sách hoàn tiền hiện tại không áp dụng cho các đơn hàng đặt trước ngày **01/02/2026**. Các đơn hàng này sẽ áp dụng theo chính sách hoàn tiền phiên bản 3 [1].",
     "sources": [
-      "policy/refund-v4.pdf",
-      "hr/leave-policy-2026.pdf"
+      "hr/leave-policy-2026.pdf",
+      "policy/refund-v4.pdf"
     ],
     "chunks_retrieved": 5,
     "retrieval_mode": "hybrid",
-    "timestamp": "2026-04-13T17:40:48.754778"
+    "timestamp": "2026-04-13T18:13:12.764011"
   }
 ]

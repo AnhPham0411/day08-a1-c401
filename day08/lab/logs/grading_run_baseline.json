@@ -8,7 +8,7 @@
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:51:33.041231"
+    "timestamp": "2026-04-13T18:10:07.616763"
   },
   {
     "id": "gq02",
@@ -16,23 +16,23 @@
     "answer": "Khi làm việc remote, bạn phải sử dụng **VPN** để kết nối với hệ thống nội bộ và mỗi tài khoản được kết nối VPN trên tối đa **2 thiết bị** cùng lúc [1][2].",
     "sources": [
       "hr/leave-policy-2026.pdf",
-      "it/access-control-sop.md",
-      "support/helpdesk-faq.md"
+      "support/helpdesk-faq.md",
+      "it/access-control-sop.md"
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:51:37.055108"
+    "timestamp": "2026-04-13T18:10:12.626456"
   },
   {
     "id": "gq03",
     "question": "Đơn hàng mua trong chương trình Flash Sale và đã kích hoạt sản phẩm có được hoàn tiền không?",
-    "answer": "Đơn hàng mua trong chương trình **Flash Sale** và đã kích hoạt sản phẩm **không được hoàn tiền**. Cụ thể:\n\n- Đơn hàng đã áp dụng mã giảm giá đặc biệt theo chương trình khuyến mãi **Flash Sale** sẽ không đủ điều kiện hoàn tiền [1].\n- Sản phẩm đã được **kích hoạt** cũng không đủ điều kiện hoàn tiền [1]. \n\nDo đó, cả hai điều kiện này đều dẫn đến việc không được hoàn tiền.",
+    "answer": "Đơn hàng mua trong chương trình **Flash Sale** và đã kích hoạt sản phẩm **không được hoàn tiền**. Cụ thể:\n\n- Đơn hàng đã áp dụng mã giảm giá đặc biệt theo chương trình khuyến mãi **Flash Sale** không đủ điều kiện hoàn tiền [1].\n- Sản phẩm đã được **kích hoạt** cũng không đủ điều kiện hoàn tiền [1]. \n\nDo đó, cả hai điều kiện này đều dẫn đến việc không được hoàn tiền.",
     "sources": [
       "policy/refund-v4.pdf"
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:51:42.989570"
+    "timestamp": "2026-04-13T18:10:19.532998"
   },
   {
     "id": "gq04",
@@ -43,7 +43,7 @@
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:51:47.440095"
+    "timestamp": "2026-04-13T18:10:24.600606"
   },
   {
     "id": "gq05",
@@ -54,44 +54,44 @@
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:51:50.308338"
+    "timestamp": "2026-04-13T18:10:27.924357"
   },
   {
     "id": "gq06",
     "question": "Lúc 2 giờ sáng xảy ra sự cố P1, on-call engineer cần cấp quyền tạm thời cho một engineer xử lý incident. Quy trình cụ thể như thế nào và quyền này tồn tại bao lâu?",
-    "answer": "Quy trình cấp quyền tạm thời cho engineer xử lý sự cố P1 như sau:\n\n1. **On-call IT Admin** có thể cấp quyền tạm thời sau khi được **Tech Lead** phê duyệt bằng lời.\n2. Quyền tạm thời này có thể tồn tại tối đa **24 giờ**.\n3. Sau **24 giờ**, phải có ticket chính thức hoặc quyền sẽ bị thu hồi tự động.\n4. Mọi quyền tạm thời phải được ghi log vào hệ thống **Security Audit** [1].",
+    "answer": "Quy trình cấp quyền tạm thời cho engineer xử lý sự cố P1 như sau:\n\n1. **On-call IT Admin** có thể cấp quyền tạm thời sau khi được **Tech Lead** phê duyệt bằng lời.\n2. Quyền tạm thời này có hiệu lực tối đa **24 giờ**.\n3. Sau **24 giờ**, phải có ticket chính thức hoặc quyền sẽ bị thu hồi tự động.\n4. Mọi quyền tạm thời phải được ghi log vào hệ thống **Security Audit** [1]. \n\nDo đó, quyền này sẽ tồn tại trong **24 giờ** kể từ khi được cấp.",
     "sources": [
-      "support/sla-p1-2026.pdf",
-      "it/access-control-sop.md"
+      "it/access-control-sop.md",
+      "support/sla-p1-2026.pdf"
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:51:56.291139"
+    "timestamp": "2026-04-13T18:10:34.726110"
   },
   {
     "id": "gq07",
     "question": "Công ty sẽ phạt bao nhiêu nếu team IT vi phạm cam kết SLA P1?",
     "answer": "Tôi không có đủ dữ liệu trong tài liệu nội bộ để trả lời câu hỏi này.",
     "sources": [
-      "support/sla-p1-2026.pdf",
       "it/access-control-sop.md",
-      "support/helpdesk-faq.md"
+      "support/helpdesk-faq.md",
+      "support/sla-p1-2026.pdf"
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:52:00.921454"
+    "timestamp": "2026-04-13T18:10:38.479485"
   },
   {
     "id": "gq08",
     "question": "Nhân viên phải báo trước bao nhiêu ngày để xin nghỉ phép năm? Con số này có giống với số ngày cần giấy tờ khi nghỉ ốm không?",
-    "answer": "Nhân viên phải báo trước **3 ngày làm việc** để xin nghỉ phép năm [2]. Trong khi đó, khi nghỉ ốm, nếu nghỉ trên **3 ngày liên tiếp**, nhân viên cần có giấy tờ y tế từ bệnh viện [1]. Do đó, con số này không giống nhau.",
+    "answer": "Nhân viên phải gửi yêu cầu nghỉ phép năm qua hệ thống HR Portal ít nhất **3 ngày làm việc** trước ngày nghỉ [2]. Trong khi đó, khi nghỉ ốm, nếu nghỉ trên **3 ngày liên tiếp**, nhân viên cần có giấy tờ y tế từ bệnh viện [1]. \n\nVì vậy, con số này không giống nhau; yêu cầu báo trước cho nghỉ phép năm là **3 ngày** trong khi yêu cầu giấy tờ cho nghỉ ốm chỉ áp dụng khi nghỉ **trên 3 ngày**.",
     "sources": [
       "hr/leave-policy-2026.pdf",
       "it/access-control-sop.md"
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:52:05.116604"
+    "timestamp": "2026-04-13T18:10:45.381714"
   },
   {
     "id": "gq09",
@@ -103,7 +103,7 @@
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:52:09.444495"
+    "timestamp": "2026-04-13T18:10:51.548430"
   },
   {
     "id": "gq10",
@@ -114,6 +114,6 @@
     ],
     "chunks_retrieved": 3,
     "retrieval_mode": "dense",
-    "timestamp": "2026-04-13T17:52:13.123112"
+    "timestamp": "2026-04-13T18:10:58.252120"
   }
 ]
