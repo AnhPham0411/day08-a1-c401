@@ -27,17 +27,13 @@ load_dotenv()
 from rag_answer import rag_answer
 from openai import OpenAI
 import time
-from dotenv import load_dotenv
-import os
 
 # =============================================================================
 # CAU HINH A/B
 # A/B Rule: Chi doi MOT bien moi lan
 # =============================================================================
 
-load_dotenv()
-
-TEST_QUESTIONS_PATH = Path(__file__).parent / "data" / "test_questions.json"
+TEST_QUESTIONS_PATH = Path(__file__).parent / "data" / "grading_questions.json"
 RESULTS_DIR = Path(__file__).parent / "results"
 LOGS_DIR = Path(__file__).parent / "logs"
 
@@ -95,8 +91,10 @@ def score_faithfulness(
       2: Nhiều thông tin không có trong retrieved chunks
       1: Câu trả lời không grounded, phần lớn là model bịa
     """
-    # Sprint 4: Implement scoring
-    # Tạm thời trả về None (yêu cầu chấm thủ công)
+    # Abstain đúng = faithful hoàn toàn, không cần hỏi LLM
+    ABSTAIN_PHRASE = "Tôi không có đủ dữ liệu"
+    if ABSTAIN_PHRASE in answer:
+        return {"score": 5, "notes": "Correct abstain — pipeline refused to hallucinate"}
     prompt = f"""
     Given these retrieved chunks: {chunks_used}
     And this answer: {answer}
@@ -106,7 +104,9 @@ def score_faithfulness(
     3: Mostly grounded, some information may come from model knowledge
     2: Much information is not in the retrieved chunks
     1: The answer is not grounded, mostly fabricated by the model
-    Output JSON: {'score': <int>, 'reason': '<string>'}
+    Return ONLY valid JSON.
+    No explanation. No markdown. No text before or after.
+    Output JSON: {{"score": <int>, "notes": "<string>"}}
     """
 
     content, latency = call_test_llm(
@@ -114,6 +114,7 @@ def score_faithfulness(
         temperature=0
     )
 
+    print(content)
     parsed = json.loads(content)
     return parsed
 
@@ -132,8 +133,6 @@ def score_answer_relevance(
       3: Trả lời có liên quan nhưng chưa đúng trọng tâm
       2: Trả lời lạc đề một phần
       1: Không trả lời câu hỏi
-
-    Sprint 4: Implement tương tự score_faithfulness
     """
     prompt = f"""
     Given the query: {query}
@@ -144,7 +143,9 @@ def score_answer_relevance(
     3: Answer is relevant but not focused
     2: Answer is partially off-topic
     1: No answer to the question
-    Output JSON: {'score': <int>, 'reason': '<string>'}
+    Return ONLY valid JSON.
+    No explanation. No markdown. No text before or after.
+    Output JSON: {{"score": <int>, "notes": "<string>"}}
     """
 
     content, latency = call_test_llm(
@@ -177,7 +178,6 @@ def score_context_recall(
         for c in chunks_used
     }
 
-    # Kiểm tra matching theo partial path (vì source paths có thể khác format)
     found = 0
     missing = []
     for expected in expected_sources:
@@ -215,13 +215,6 @@ def score_completeness(
       3: Thiếu một số thông tin quan trọng
       2: Thiếu nhiều thông tin quan trọng
       1: Thiếu phần lớn nội dung cốt lõi
-
-    Sprint 4:
-    Option 1 — Chấm thủ công: So sánh answer vs expected_answer và chấm.
-    Option 2 — LLM-as-Judge:
-        "Compare the model answer with the expected answer.
-         Rate completeness 1-5. Are all key points covered?
-         Output: {'score': int, 'missing_points': [str]}"
     """
     prompt = f"""
     Given the query: {query}
@@ -233,7 +226,9 @@ def score_completeness(
     3: Missing some important information.
     2: Missing a lot of important information.
     1: Missing most of the core content.
-    Output JSON: {'score': int, 'missing_points': [str]}
+    Return ONLY valid JSON.
+    No explanation. No markdown. No text before or after.
+    Output JSON: {{"score": <int>, "notes": "<string>"}}
     """
 
     content, latency = call_test_llm(
@@ -254,11 +249,6 @@ def run_pipeline(questions: List[Dict], config: Dict, label: str = "") -> List[D
     Chay rag_answer() cho toan bo danh sach cau hoi voi config cho truoc.
     Tra ve list ket qua kem thong tin cham diem.
     """
-    if test_questions is None:
-        with open(TEST_QUESTIONS_PATH, "r", encoding="utf-8") as f:
-            test_questions = json.load(f)
-
-    log = []
     results = []
     print(f"\n{'='*50}")
     print(f"Chay pipeline: {label or config['retrieval_mode']}")
@@ -325,23 +315,10 @@ def run_pipeline(questions: List[Dict], config: Dict, label: str = "") -> List[D
             "timestamp":            datetime.now().isoformat(),
         }
         results.append(row)
-        
-        log.append({
-            "id": question_id,
-            "question": query,
-            "answer": answer,
-            "sources": result["sources"],
-            "chunks_retrieved": len(chunks_used),
-            "retrieval_mode": result["config"]["retrieval_mode"],
-            "timestamp": datetime.now().isoformat(),
-        })
 
         print(f"  Answer: {answer[:100]}...")
         print(f"  Faithful: {faith['score']} | Relevant: {relevance['score']} | "
               f"Recall: {recall['score']} | Complete: {complete['score']}")
-
-    with open("logs/grading_run.json", "w", encoding="utf-8") as f:
-        json.dump(log, f, ensure_ascii=False, indent=2)
 
     # Tính averages (bỏ qua None)
     for metric in ["faithfulness", "relevance", "context_recall", "completeness"]:
