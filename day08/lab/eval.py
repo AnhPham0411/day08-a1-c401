@@ -305,6 +305,7 @@ def run_scorecard(
         with open(TEST_QUESTIONS_PATH, "r", encoding="utf-8") as f:
             test_questions = json.load(f)
 
+    log = []
     results = []
     label = config.get("label", "unnamed")
 
@@ -366,21 +367,24 @@ def run_scorecard(
             "config_label": label,
         }
         results.append(row)
+        
+        log.append({
+            "id": question_id,
+            "question": query,
+            "answer": answer,
+            "sources": result["sources"],
+            "chunks_retrieved": len(chunks_used),
+            "retrieval_mode": result["config"]["retrieval_mode"],
+            "timestamp": datetime.now().isoformat(),
+        })
 
         if verbose:
             print(f"  Answer: {answer[:100]}...")
             print(f"  Faithful: {faith['score']} | Relevant: {relevance['score']} | "
                   f"Recall: {recall['score']} | Complete: {complete['score']}")
 
-    grading_run = {
-        "run_id": f"{time.time()}_{question_id}",
-        "model_judge": os.getenv("LLM_MODEL"),
-        "dataset": "internal",
-        "samples": results
-    }
-    
-    with open(RESULTS_DIR / f"grading_run_{question_id}.json", "w", encoding="utf-8") as f:
-        json.dump(grading_run, f, ensure_ascii=False, indent=2)
+    with open("logs/grading_run.json", "w", encoding="utf-8") as f:
+        json.dump(log, f, ensure_ascii=False, indent=2)
 
     # Tính averages (bỏ qua None)
     for metric in ["faithfulness", "relevance", "context_recall", "completeness"]:
