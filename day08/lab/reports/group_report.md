@@ -7,7 +7,7 @@
 | Phạm Tuấn Anh | Tech Lead | bintuananh2003@gmail.com |
 | Hoàng Tuấn Anh | Retrieval Owner | stephenhtuananh@gmail.com |
 | ___ | Eval Owner A | ___ |
-| ___ | Eval Owner B | ___ |
+| Nguyễn Quang Trường | Eval Owner B | quangtruongpt0@gmail.com |
 | Đàm Lê Văn Toàn | Documentation Owner | damtoan321@gmail.com |
 | ___ | Prompt Engineer & LLM Judge | ___ |
 
@@ -88,7 +88,7 @@ Variant cải thiện Faithfulness và Answer Relevance 10%. Context Recall đã
 | Phạm Tuấn Anh (Tech Lead) | Khởi tạo project, setup ChromaDB, `get_embedding()`, kết nối LLM API, hàm `call_llm()`, gắn citation `[1]` vào RAG output. | Sprint 1, 2 |
 | Hoàng Tuấn Anh | Thiết kế chunking strategy (`CHUNK_SIZE=400`, `CHUNK_OVERLAP=80`); implement Hybrid Search (Dense + BM25) với RRF; tinh chỉnh `dense_weight=0.8 / sparse_weight=0.2`; tích hợp Cross-Encoder `ms-marco-MiniLM-L-6-v2` vào bước Rerank; debug `eval.py` (fix score overwrite từ `score_with_llm`, fix key `expected_sources`). | Sprint 1, 3, 4 |
 | ___ (Eval Owner A) | Thiết kế `test_questions.json` (10 câu, expected answer, expected source); chạy pipeline với grading questions lúc 17:00; xuất `logs/grading_run.json` đúng định dạng trước 18:00. | Sprint 3, 4 |
-| ___ (Eval Owner B) | Chạy pipeline cho cả baseline và variant; điền kết quả vào `scorecard_baseline.md` và `scorecard_variant.md`; chạy `compare_ab()`; tổng hợp delta chuyển cho Documentation Owner. | Sprint 3, 4 |
+| Nguyễn Quang Trường | Chạy pipeline cho cả baseline và variant; điền kết quả vào `scorecard_baseline.md` và `scorecard_variant.md`; chạy `compare_ab()`; tổng hợp delta chuyển cho Documentation Owner. | Sprint 3, 4 |
 | Đàm Lê Văn Toàn | Viết `architecture.md` (chunking decision, sơ đồ pipeline); viết `tuning-log.md`; kiểm tra format toàn bộ repo trước 18:00; commit `group_report.md` sau 18:00. | Sprint 4, Final |
 | ___ (Prompt Engineer) | Thiết kế Prompt chống hallucination (Abstain khi context rỗng, citation `[1][2]`); viết LLM-as-Judge cho các hàm `score_faithfulness`, `score_answer_relevance`, `score_completeness` — output JSON `{"score": int, "notes": "..."}`. | Sprint 2, 4 |
 
