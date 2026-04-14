@@ -9,7 +9,7 @@
 | Vũ Hồng Quang | Eval Owner A | quangzetsu@gmail.com |
 | Nguyễn Quang Trường | Eval Owner B | quangtruongpt0@gmail.com |
 | Đàm Lê Văn Toàn | Documentation Owner | damtoan321@gmail.com |
-| ___ | Prompt Engineer & LLM Judge | ___ |
+| Vũ Lê Hoàng | Prompt Engineer & LLM Judge | hoanglevu1705@gmail.com |
 
 **Ngày nộp:** 2026-04-13  
 **Repo:** https://github.com/AnhPham0411/day08-a1-c401
@@ -90,7 +90,7 @@ Variant cải thiện Faithfulness và Answer Relevance 10%. Context Recall đã
 | ___ (Eval Owner A) | Thiết kế `test_questions.json` (10 câu, expected answer, expected source); chạy pipeline với grading questions lúc 17:00; xuất `logs/grading_run.json` đúng định dạng trước 18:00. | Sprint 3, 4 |
 | Nguyễn Quang Trường | Chạy pipeline cho cả baseline và variant; điền kết quả vào `scorecard_baseline.md` và `scorecard_variant.md`; chạy `compare_ab()`; tổng hợp delta chuyển cho Documentation Owner. | Sprint 3, 4 |
 | Đàm Lê Văn Toàn | Viết `architecture.md` (chunking decision, sơ đồ pipeline); viết `tuning-log.md`; kiểm tra format toàn bộ repo trước 18:00; commit `group_report.md` sau 18:00. | Sprint 4, Final |
-| ___ (Prompt Engineer) | Thiết kế Prompt chống hallucination (Abstain khi context rỗng, citation `[1][2]`); viết LLM-as-Judge cho các hàm `score_faithfulness`, `score_answer_relevance`, `score_completeness` — output JSON `{"score": int, "notes": "..."}`. | Sprint 2, 4 |
+| Vũ Lê Hoàng | Thiết kế Prompt chống hallucination (Abstain khi context rỗng, citation `[1][2]`); viết LLM-as-Judge cho các hàm `score_faithfulness`, `score_answer_relevance`, `score_completeness` — output JSON `{"score": int, "notes": "..."}`. | Sprint 2, 4 |
 
 **Điều nhóm làm tốt:**
 Phân tách vai trò rõ ràng, mỗi người sở hữu một tầng pipeline độc lập — tránh conflict code khi làm Git. Nhóm tuân thủ A/B Testing nghiêm túc: chỉ thay đổi một biến mỗi lần, đo delta thực tế thay vì phỏng đoán.
